@@ -1,0 +1,402 @@
+<script type="text/javascript">
+    var gk_isXlsx = false;
+    var gk_xlsxFileLookup = {};
+    var gk_fileData = {};
+    function filledCell(cell) {
+      return cell !== '' && cell != null;
+    }
+    function loadFileData(filename) {
+    if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+        try {
+            var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+            var firstSheetName = workbook.SheetNames[0];
+            var worksheet = workbook.Sheets[firstSheetName];
+
+            // Convert sheet to JSON to filter blank rows
+            var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+            // Filter out blank rows (rows where all cells are empty, null, or undefined)
+            var filteredData = jsonData.filter(row => row.some(filledCell));
+
+            // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+            var headerRowIndex = filteredData.findIndex((row, index) =>
+              row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+            );
+            // Fallback
+            if (headerRowIndex === -1 || headerRowIndex > 25) {
+              headerRowIndex = 0;
+            }
+
+            // Convert filtered JSON back to CSV
+            var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+            csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+            return csv;
+        } catch (e) {
+            console.error(e);
+            return "";
+        }
+    }
+    return gk_fileData[filename] || "";
+    }
+    </script><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkTree Glassmorphic</title>
+<style>
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Estilos generales */
+body {
+  background-color: black;
+  color: white;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+/* Estilo glasmórfico */
+.glassmorphic {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+}
+
+/* Animaciones */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOutBackground {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* New style for intro background */
+.intro-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('67f70667bbc9554c154f5637_Group_201321319621-p-1080.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  animation: fadeIn 2s ease-in forwards, fadeOutBackground 2s ease-out forwards 2s; /* Apply fade in and fade out animations */
+  z-index: 1; /* Ensure it's behind the logo but above the body background */
+  pointer-events: none; /* Prevent pointer events after fade out */
+}
+
+
+.fade-in-logo {
+  animation: fadeInScale 2s ease-in forwards, fadeOut 0.8s ease-out forwards 2s;
+}
+
+.fade-in-page {
+  opacity: 0;
+  animation: fadeIn 2s ease-in 2s forwards;
+}
+
+/* Estilos para el logo y título de la intro */
+.logo-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  pointer-events: none; /* Prevent pointer events after fade out */
+}
+
+.logo-container div {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: #333;
+  border: 3px solid #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-container span {
+  font-size: 48px;
+}
+
+.logo-container h1 {
+  text-align: center;
+  font-size: 60px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* Placeholder para el logo de la marca */
+.brand-logo-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #333;
+  margin: 0 auto 20px auto;
+  border: 3px solid #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #9CA3AF;
+  text-align: center;
+}
+.brand-logo-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Esto asegura que la imagen cubra el área manteniendo su relación de aspecto */
+  border-radius: 50%; /* Esto hace que la imagen también sea circular */
+}
+
+/* Fondo y decoraciones */
+.background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+.background-overlay img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.top-left-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 128px;
+  height: 128px;
+  z-index: 10;
+}
+
+.footer-decoration {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+/* Contenido principal */
+.content {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.content-container {
+  width: 100%;
+  max-width: 448px;
+  margin: 0 auto;
+}
+
+/* Sección de perfil */
+.profile-section {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.profile-section h1 {
+  font-size: 30px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.profile-section p {
+  color: #9CA3AF;
+  font-size: 16px;
+}
+
+/* Enlaces sociales */
+.social-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.social-links a, .email-section {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  text-decoration: none;
+  color: white;
+  transition: background 0.3s ease;
+}
+
+.social-links a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.social-links .icon-container {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.social-links svg {
+  width: 20px;
+  height: 20px;
+}
+
+.social-links span {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Estilo específico para cada red social */
+.bg-blue-500 { background-color: #3B82F6; }
+.bg-pink-500 { background-color: #EC4899; }
+.bg-blue-600 { background-color: #2563EB; }
+.bg-green-500 { background-color: #10B981; }
+.bg-red-500 { background-color: #EF4444; }
+.bg-gray-700 { background-color: #4B5563; }
+
+/* Sección de email */
+.email-section {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+}
+
+.email-section a {
+  color: white;
+  text-decoration: none;
+  flex-grow: 1;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.email-section button {
+  padding: 8px 16px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: white;
+}
+</style>
+</head>
+<body>
+<!-- Intro Background -->
+<div class="intro-background"></div>
+
+<!-- Logo y Título en Intro -->
+<div class="logo-container fade-in-logo">
+<h1>IMPULZA PERÚ</h1>
+</div>
+
+<!-- Page Content -->
+<div class="page-content fade-in-page">
+<!-- Background Image Overlay -->
+<div class="background-overlay">
+  <img src="67f70667bbc9554c154f5605_light-left.webp" alt="Background">
+</div>
+
+
+
+<!-- Content -->
+<div class="content">
+  <div class="content-container">
+    <!-- Profile Section -->
+    <div class="profile-section">
+      <div class="brand-logo-placeholder">
+        <img src="Recurso 3Logo completo Impulzav3_300x300.webp" alt="Logo de IMPULZA PERÚ">
+      </div>
+      <h1>IMPULZA PERÚ</h1>
+      <p>Escuela Digital para Emprendedores</p>
+    </div>
+
+    <!-- Social Links -->
+    <div class="social-links">
+      <a href="https://x.com/impulzaperu" target="_blank" class="glassmorphic">
+        <div class="icon-container bg-blue-500">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </div>
+        <span>X</span>
+      </a>
+      <a href="https://www.instagram.com/impulza.peru/" target="_blank" class="glassmorphic">
+        <div class="icon-container bg-pink-500">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.326 3.608 1.301.975.975 1.24 2.242 1.301 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.326 2.633-1.301 3.608-.975.975-2.242 1.24-3.608 1.301-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.326-3.608-1.301-.975-.975-1.24-2.242-1.301-3.608-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.326-2.633 1.301-3.608.975-.975 2.242-1.24 3.608-1.301 1.266-.058 1.646-.07 4.85-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-1.543.07-2.978.376-4.105 1.503S1.512 3.986 1.442 5.529C1.384 6.809 1.37 7.217 1.37 12s.014 5.191.072 6.471c.07 1.543.376 2.978 1.503 4.105s2.562 1.433 4.105 1.503c1.28.058 1.688.072 4.947.072s3.667-.014 4.947-.072c1.543-.07 2.978-.376 4.105-1.503s1.433-2.562 1.503-4.105c.058-1.28.072-1.688.072-4.947s-.014-3.667-.072-4.947c-.07-1.543-.376-2.978-1.503-4.105S19.514.669 17.971.599c-1.28-.058-1.688-.072-4.947-.072zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zm0 10.162a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z"/></svg>
+        </div>
+        <span>Instagram</span>
+      </a>
+      
+      <a href="https://www.facebook.com/profile.php?id=61575701947543" target="_blank" class="glassmorphic">
+        <div class="icon-container bg-blue-600">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12c0 5.013 3.693 9.153 8.505 9.876v-6.98h-2.55v-2.896h2.55v-2.21c0-2.52 1.492-3.91 3.777-3.91 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.772-1.63 1.563v1.902h2.773l-.443 2.896h-2.33v6.98C18.307 21.153 22 17.013 22 12c0-5.523-4.477-10-10-10z"/></svg>
+        </div>
+        <span>Facebook</span>
+      </a>
+      <a href="https://preview--raykevin-digital-forge.lovable.app/" target="_blank" class="glassmorphic">
+        <div class="icon-container bg-green-500">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.81 3.98-2.1 5.39z"/></svg>
+        </div>
+        <span>Mis Servicios</span>
+      </a>
+      <div class="email-section glassmorphic">
+        <div class="icon-container bg-red-500">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 4v16h16V4H4zm2 2h12v12H6V6zm2 2v8h8V8H8zm2 2h4v4h-4v-4z"/></svg>
+        </div>
+        <a href="mailto:impulzateperu@gmail.com">Email</a>
+        <button onclick="copyEmail()" class="bg-gray-700">Copiar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer Decoration -->
+<img src="67f70667bbc9554c154f5613_bg-p-1600.png" alt="Footer Decoration" class="footer-decoration">
+</div>
+
+<script>
+function copyEmail() {
+  navigator.clipboard.writeText("impulzateperu@gmail.com");
+  alert("Email copiado!");
+}
+</script>
+</body>
+</html>
